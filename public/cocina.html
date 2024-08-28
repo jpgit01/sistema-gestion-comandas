@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./estilos/css/bootstrap.min.css">
+    <title>Cocina</title>
+</head>
+
+<body>
+    <h1 class="text-center">Cocina</h1>
+    <div class="container-fluid">
+        <div class="row" id="order-list"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Actualiza la lista de pedidos cuando el servidor envía una actualización
+        socket.on('orderUpdate', ({ orders, orderHistory }) => {
+            updateOrderList(orders);
+        });
+
+        // Actualiza la lista de pedidos en proceso
+        function updateOrderList(orders) {
+            const orderList = document.getElementById('order-list');
+            let html = '';
+
+            Object.entries(orders).forEach(([id, order]) => {
+                html += `
+                
+                    <div class="order col-md-3" id="order-${id}">
+                        <strong>ID del Pedido: ${id}</strong>
+                        <p>Número de Comanda: ${order.commandNumber}</p>
+                        <p>Desayuno: ${order.burger}</p>
+                        <p>Estado del Pedido: <span class="${getStatusClass(order.status)}" style="color: black; padding: 2%">${order.status}</span></p>
+                        <p>Observaciones: ${order.observations || 'Ninguna'}</p> <!-- Mostrar observaciones -->
+                        <div class="button-group">
+                            <button class="btn btn-warning" onclick="updateStatus('${id}', 'PREPARANDO')">PREPARANDO</button>
+                            <button class="btn btn-success" onclick="updateStatus('${id}', 'TERMINADO')">TERMINADO</button>
+                        </div>
+                        <ul>
+                            ${Object.entries(order.itemStatuses).map(([itemId, status]) => `
+                                <li class="${getStatusClass(status)}">ID: ${itemId} - Estado: ${status}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            });
+
+            orderList.innerHTML = html;
+        }
+
+        // Actualiza la clase del estado para aplicar color
+        function getStatusClass(status) {
+            switch (status) {
+                case 'SOLICITADO': return 'rojo';
+                case 'PREPARANDO': return 'amarillo';
+                case 'TERMINADO': return 'verde';
+                default: return '';
+            }
+        }
+
+        // Envia la actualización del estado al servidor
+        function updateStatus(id, newStatus) {
+            socket.emit('updateOrderStatus', { id, status: newStatus });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./estilos/css/bootstrap.min.css">
+
+    <title>Cajero</title>
+</head>
+
+<body>
+    <h1 class="text-center mb-3">Pedido parrilla</h1>
+    <div class="container p-3 bg-secondary-subtle" id="order-form">
+        <div class="row">
+            <div class="col text-center">
+                <label for="hamburger">Desayuno:</label>
+                <select class="form-select" id="hamburger">
+                    <option value=""><strong>Seleccionar</strong></option>
+                    <option value=""><u>HUEVOS AL GUSTO</u></option>
+                    <option value="Huevos Divorciados"> -Huevos Divorciados</option>
+                    <option value="Huevos Rancheros"> -Huevos Rancheros</option>
+                    <option value="Huevos a la Mexicana"> -Huevos a la Mexicana</option>
+                    <option value="Huevos con Mortadela"> -Huevos con Mortadela</option>
+                    <option value="Machaca con Huevo"> -Machaca con Huevo</option>
+                    <option value=""><u>CHILAQUILES</u></option>
+                    <option value="Chilaquiles salsa Roja"> -Chilaquiles salsa roja</option>
+                    <option value="Chilaquiles salsa Verde"> -Chilaquiles salsa Verde</option>
+                    <option value="Chilaquiles salsa Mixta"> -Chilaquiles salsa Mixta</option>
+                    <option value=""><u>OMELETTE</u></option>
+                    <option value="Omelette Champiñones"> -Omelette Champiñones</option>
+                    <option value="Omelette Espinacas"> -Omelette Espinacas</option>
+                    <option value=""><u>ESPECIALES INDIVIDUAL</u></option>
+                    <option value="Cuernito a la Parrilla"> -Cuernito a la Parrilla</option>
+                    <option value="Bisquet con Huevo"> -Bisquet con Huevo</option>
+                    <option value="Sincronizadas"> -Sincronizadas</option>
+                    <option value=""><u>ANTOJITOS</u></option>
+                    <option value="Entomatadas"> -Entomatadas</option>
+                    <option value="Enfrijoladas"> -Enfrijoladas</option>
+                    <option value="Enchiladas"> -Enchiladas</option>
+                    <option value="Tostadas(2)"> -Tostadas(2)</option>
+                    <option value="Tostadas(4)"> -Tostadas(4)</option>
+                    <option value="Gorditas(4)"> -Gorditas(4)</option>
+                    <option value="Tacos(5)"> -Tacos(5)</option>
+                    <option value=""><u>A LA PARRILLA</u></option>
+                    <option value="Torta de Milanesa"><u>Torta de Milanesa</u></option>
+                    <option value="Torta de Aguacate"><u>Torta de Aguacate</u></option>
+                    <option value="Hamburguesa"><u>Hamburguesa</u></option>
+                    <option value="Papa Asada"><u>Papa Asada</u></option>
+                    <option value="Hot Dog"><u>Hot Dog</u></option>
+                    <option value="Sandwich a la Parrilla"><u>Sandwich a la Parrilla</u></option>
+                </select>
+            </div>
+            <div class="col text-center">
+                <label for="command-number">Número pedido:</label>
+                <select class="form-select" id="command-number">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col text-center">
+                <label for="observations">Observaciones:</label>
+                <textarea class="form-control" id="observations" rows="3"
+                    placeholder="Escribe aquí tus observaciones"></textarea>
+                <button class="btn btn-primary btn-lg mt-5" onclick="sendOrder()">Enviar Pedido</button>
+            </div>
+        </div>
+    </div>
+    <h2>Pedidos en Proceso</h2>
+    <div class="container">
+        <div class="row" id="orders"></div>
+    </div>
+
+
+    <h2>Historial de Pedidos</h2>
+    <div class="row" id="order-history"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Actualiza la lista de pedidos y el historial cuando el servidor envía una actualización
+        socket.on('orderUpdate', ({ orders, orderHistory }) => {
+            updateOrderList(orders);
+            updateOrderHistory(orderHistory);
+        });
+
+        // Actualiza la lista de pedidos en proceso
+        function updateOrderList(orders) {
+            const orderList = document.getElementById('orders');
+            let html = '';
+
+            Object.entries(orders).forEach(([id, order]) => {
+                html += `
+                    <div class="order col-md-3" id="order-${id}">
+                        <strong>ID del Pedido: ${id}</strong>
+                        <p>Número de Comanda: ${order.commandNumber}</p>
+                        <p>Pedido: ${order.burger}</p>
+                        <p>Estado del Pedido: <span class="${getStatusClass(order.status)}" style="color: black;">${order.status}</span></p>
+                        <p>Observaciones: ${order.observations || 'Ninguna'}</p> <!-- Mostrar observaciones -->
+                    </div>
+                `;
+            });
+
+            orderList.innerHTML = html;
+        }
+
+        // Actualiza la lista del historial de pedidos
+        function updateOrderHistory(orderHistory) {
+            const orderHistoryDiv = document.getElementById('order-history');
+            let html = '';
+
+            orderHistory.forEach((order) => {
+                html += `
+                    <div class="order" id="order-history-${order.id}">
+                        <strong>ID del Pedido: ${order.id}</strong>
+                        <p>Número de Comanda: ${order.commandNumber}</p>
+                        <p>Pedido: ${order.burger}</p>
+                        <p>Estado del Pedido: <span class="${getStatusClass(order.status)}" style="color: black;">${order.status}</span></p>
+                        <p>Observaciones: ${order.observations || 'Ninguna'}</p> <!-- Mostrar observaciones -->
+                    </div>
+                `;
+            });
+
+            orderHistoryDiv.innerHTML = html;
+        }
+
+        // Actualiza la clase del estado para aplicar color
+        function getStatusClass(status) {
+            switch (status) {
+                case 'SOLICITADO': return 'rojo';
+                case 'PREPARANDO': return 'amarillo';
+                case 'TERMINADO': return 'verde';
+                default: return '';
+            }
+        }
+
+        // Envia el nuevo pedido al servidor
+        function sendOrder() {
+            const selectedHamburger = document.getElementById('hamburger').value;
+            const selectedCommandNumber = document.getElementById('command-number').value;
+            const observations = document.getElementById('observations').value; // Obtener observaciones
+            const order = {
+                commandNumber: selectedCommandNumber,
+                itemStatuses: {},
+                burger: selectedHamburger,
+                status: 'SOLICITADO',
+                observations: observations // Incluir observaciones
+            };
+            socket.emit('placeOrder', order); // Enviar el pedido al servidor
+        }
+    </script>
+</body>
+
+</html>

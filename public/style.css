@@ -1,0 +1,41 @@
+.order {
+    border: 1px solid #ccc;
+    background-color: black;
+    color: white;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.rojo {
+    background-color: red;
+    color: black;
+}
+.amarillo {
+    background-color: yellow;
+    color: black;
+}
+.verde {
+    background-color: green;
+    color: black;
+}
+body {
+    font-family: Arial, sans-serif;
+}
+#order-form {
+    margin-bottom: 20px;
+}
+#orders, #order-history {
+    margin-top: 20px;
+}
+.button-group {
+    margin-top: 10px;
+}
+button {
+    margin-right: 5px;
+}
+ul {
+    padding-left: 20px;
+}
+li {
+    margin-bottom: 5px;
+    padding: 5px;
+}
